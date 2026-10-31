@@ -1,0 +1,78 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "User Profile",
+      "description": "Stores user profile information, categories, and settings.",
+      "type": "object",
+      "properties": {
+        "profileId": { "type": "string", "pattern": "^[a-zA-Z0-9_\\-]+$", "description": "The UID of the user." },
+        "profileName": { "type": "string", "maxLength": 100 },
+        "firstName": { "type": "string", "maxLength": 50 },
+        "lastName": { "type": "string", "maxLength": 50 },
+        "avatarUrl": { "type": "string", "maxLength": 200 },
+        "geminiApiKey": { "type": "string", "maxLength": 100 },
+        "examCategories": { "type": "array", "items": { "type": "string" }, "maxItems": 20 },
+        "dailyGoal": { "type": "integer", "minimum": 1, "maximum": 50 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["profileId", "profileName", "avatarUrl", "createdAt", "updatedAt"]
+    },
+    "UserStreak": {
+      "title": "User Streak",
+      "description": "Stores summarized streak statistics for a user.",
+      "type": "object",
+      "properties": {
+        "profileId": { "type": "string", "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "currentStreak": { "type": "integer", "minimum": 0 },
+        "longestStreak": { "type": "integer", "minimum": 0 },
+        "totalActiveDays": { "type": "integer", "minimum": 0 },
+        "lastActiveDate": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$" },
+        "activeDates": { "type": "array", "items": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$" }, "maxItems": 2000 },
+        "examDates": { "type": "array", "items": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$" }, "maxItems": 2000 },
+        "todayCompletedCount": { "type": "integer", "minimum": 0 },
+        "dailyGoal": { "type": "integer", "minimum": 1 },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["profileId", "currentStreak", "longestStreak", "totalActiveDays", "updatedAt"]
+    },
+    "TestAttempt": {
+      "title": "Test Attempt",
+      "description": "Stores a detailed record of a single test attempt.",
+      "type": "object",
+      "properties": {
+        "attemptId": { "type": "string", "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "profileId": { "type": "string", "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "testName": { "type": "string", "maxLength": 200 },
+        "subject": { "type": "string", "maxLength": 100 },
+        "completedAt": { "type": "string", "format": "date-time" },
+        "score": { "type": "number" },
+        "maxMarks": { "type": "number" },
+        "totalQuestions": { "type": "integer", "minimum": 1 },
+        "correctAnswers": { "type": "integer", "minimum": 0 },
+        "incorrectAnswers": { "type": "integer", "minimum": 0 },
+        "unansweredQuestions": { "type": "integer", "minimum": 0 },
+        "percentage": { "type": "number" },
+        "accuracy": { "type": "number" },
+        "timeTaken": { "type": "integer", "description": "Time taken in seconds." },
+        "questionResponses": { "type": "array" },
+        "config": { "type": "object" }
+      },
+      "required": ["attemptId", "profileId", "testName", "completedAt", "score", "maxMarks"]
+    }
+  },
+  "firestore": {
+    "users/{profileId}": {
+      "schema": "UserProfile",
+      "description": "Private user profile document."
+    },
+    "users/{profileId}/streaks/main": {
+      "schema": "UserStreak",
+      "description": "Streak data for the user."
+    },
+    "users/{profileId}/attempts/{attemptId}": {
+      "schema": "TestAttempt",
+      "description": "Test attempt records for the user."
+    }
+  }
+}

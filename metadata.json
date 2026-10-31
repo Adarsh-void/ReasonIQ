@@ -1,0 +1,6 @@
+{
+  "name": "ReasonIQ — AI Mock Exam Studio",
+  "description": "Production-grade AI-powered mock exam platform for reasoning and analytical ability. Generate verified MCQs with live timers, instant or strict exam modes, and comprehensive score analytics.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

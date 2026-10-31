@@ -1,0 +1,52 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default Deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Global Helpers
+    function isSignedIn() { return request.auth != null; }
+    function isOwner(userId) { return isSignedIn() && request.auth.uid == userId; }
+    function isValidId(id) { return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); }
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+
+    // User Profile Validation
+    function isValidUserProfile(data) {
+      return data.keys().hasAll(['profileId', 'profileName', 'avatarUrl', 'createdAt', 'updatedAt']) &&
+             data.keys().hasOnly(['profileId', 'profileName', 'firstName', 'lastName', 'avatarUrl', 'geminiApiKey', 'examCategories', 'dailyGoal', 'createdAt', 'updatedAt']) &&
+             data.profileId == request.auth.uid &&
+             data.profileName is string && data.profileName.size() <= 100 &&
+             data.avatarUrl is string && data.avatarUrl.size() <= 200 &&
+             data.updatedAt == request.time;
+    }
+
+    match /users/{profileId} {
+      allow get: if isOwner(profileId);
+      allow create: if isOwner(profileId) && isValidUserProfile(incoming()) && incoming().createdAt == request.time;
+      allow update: if isOwner(profileId) && isValidUserProfile(incoming()) && incoming().createdAt == existing().createdAt;
+      allow delete: if isOwner(profileId);
+
+      // Streaks
+      match /streaks/main {
+        allow get: if isOwner(profileId);
+        allow create, update: if isOwner(profileId) &&
+                                incoming().profileId == request.auth.uid &&
+                                incoming().updatedAt == request.time;
+      }
+
+      // Attempts
+      match /attempts/{attemptId} {
+        allow get, list: if isOwner(profileId);
+        allow create: if isOwner(profileId) && isValidId(attemptId) &&
+                        incoming().profileId == request.auth.uid &&
+                        incoming().attemptId == attemptId &&
+                        incoming().completedAt is string; // ISO string check
+        allow update: if false; // Attempts are immutable
+        allow delete: if isOwner(profileId);
+      }
+    }
+  }
+}
